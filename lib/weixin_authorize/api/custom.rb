@@ -145,6 +145,61 @@ module WeixinAuthorize
         http_post(KF_SESSION_URL, post_body, {}, CUSTOM_ENDPOINT)
       end
 
+      def build_message(to_user, type, message, kf)
+        default_options(to_user, type).merge(message).merge(
+          { customservice: { kf_account: kf } }
+        )
+      end
+
+      def send_text_custom_kf(to_user, content, kf)
+        message = build_message(to_user, 'text', { text: { content: content } }, kf)
+        http_post(custom_base_url, message)
+      end
+
+      def send_image_custom_kf(to_user, media_id, kf)
+        message = build_message(to_user, 'image', { image: { media_id: media_id }}, kf)
+        http_post(custom_base_url, message)
+      end
+
+      def send_voice_custom_kf(to_user, media_id, kf)
+        message = build_message(to_user, 'voice', { voice: { media_id: media_id } }, kf)
+        http_post(custom_base_url, message)
+      end
+
+      def send_new_custom_kf(to_user, articles, kf)
+        message = build_message(to_user, 'news', { new: {articles: articles }}, kf)
+        http_post(custom_base_url, message)
+      end
+
+      def send_music_custom_kf(to_user, media_id, url, hqurl, options, kf)
+        music_options = {
+          thumb_media_id: media_id,
+          musicurl: url,
+          hqmusicurl: hqurl,
+        }.merge(options || {})
+        message = build_message(to_user, 'music', { music: music_options }, kf)
+        http_post(custom_base_url, message)
+      end
+
+      def send_video_custom_kf(to_user, media_id, options, kf)
+        video_options = {
+          media_id: media_id
+        }.merge(options || {})
+        message = build_message(to_user, 'video', { video: video_options }, kf)
+        http_post(custom_base_url, message)
+      end
+
+      def close_kf_session(account, open_id, text)
+        post_body = {
+          kf_account: account,
+          openid: open_id,
+          text: text
+        }
+
+        session_url = "#{CUSTOM_SERVICE}/kfsession/close".freeze
+        http_post(session_url, post_body, {}, CUSTOM_ENDPOINT)
+      end
+
       private
 
         # https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=ACCESS_TOKEN
